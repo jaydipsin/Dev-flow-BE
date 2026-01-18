@@ -17,13 +17,18 @@ const userSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-userSchema.set("toJSON", {
+userSchema.set("toObject", {
   transform: function (doc, ret) {
     delete ret.password;
     delete ret.__v;
+    delete ret.refreshToken;
     return ret;
   },
 });

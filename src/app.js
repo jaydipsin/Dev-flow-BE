@@ -1,6 +1,7 @@
 import express from "express";
 import connectToDb from "./utils/db.js";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 // Roustes import
 import authRoutes from "./routes/auth.routes.js";
@@ -9,8 +10,9 @@ dotenv.config();
 
 const app = express();
 
-// Middleware goes here 
+// Middleware goes here
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes would go here
 app.use("/auth", authRoutes);
