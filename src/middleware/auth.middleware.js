@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
-import { JWT_ACCESS_TOKEN_SECRET } from "../config/global";
+import { JWT_ACCESS_TOKEN_SECRET } from "../config/global.js";
+import { generateError } from "../shared/helper.js";
+import { errorObj } from "../shared/error-message.js";
 
 export const authMiddleware = (req, res, next) => {
   try {
@@ -9,7 +11,6 @@ export const authMiddleware = (req, res, next) => {
       ? authHeader.slice(7)
       : authHeader;
 
-
     if (!token) {
       return res.status(401).json({ message: "Token not found" });
     }
@@ -17,12 +18,25 @@ export const authMiddleware = (req, res, next) => {
     const decode = jwt.verify(token, JWT_ACCESS_TOKEN_SECRET);
 
     if (!decode) {
-      return res.status(401).json({ message: "Token not verified" });
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        throw generateError(errorObj[401], 401);
+      }
+
+      const decodedRefreshToken = jwt.verify(
+        refreshToken,
+        JWT_REFRESH_TOKEN_SECRET,
+      );
+      if (!decodedRefreshToken) {
+        throw generateError(errorObj[401], 401);
+      }
+      const newAccessToken = accessTokenGenerator(decodedRefreshToken);
+      req.setHeaders("Authorization", `Bearer ${newAccessToken}`);
     }
     req.user = decode;
     next();
   } catch (err) {
-    console.log(err);
-    return res.status(401).json({ message: "Unauthorized" });
+    console.error(err);
+    throw generateError(errorObj[401], 401);
   }
 };
